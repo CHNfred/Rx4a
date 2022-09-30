@@ -106,5 +106,5 @@ Rx4a rx4a = new Rx4a().wait(new ParallelTask(new MiniTask[]{
 rx4a.start();
 //rx4a.cancel();
 ```
-![Overview](./docs/Overview.bmp)
+![Overview](https://github.com/CHNfred/Rx4a/blob/main/docs/Overview.bmp)
 
