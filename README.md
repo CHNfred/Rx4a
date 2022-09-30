@@ -99,7 +99,7 @@ Rx4a rx4a = new Rx4a().wait(new ParallelTask(new MiniTask[]{
         @Override
         public void onCompleted() {
             //do something
-            LogUtils.d("test", "all completed, threadName = " +             Thread.currentThread().getName() + ", isCancel = " +             isCancel());
+            LogUtils.d("test", "all completed, threadName = " + Thread.currentThread().getName() + ", isCancel = " + isCancel());
         }
     }
 );
