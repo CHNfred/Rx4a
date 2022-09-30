@@ -1,0 +1,3 @@
+rootProject.name = "Rx4a"
+include ':app'
+include ':lib_business'
