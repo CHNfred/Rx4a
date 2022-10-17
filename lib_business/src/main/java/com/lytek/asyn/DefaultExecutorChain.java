@@ -57,20 +57,42 @@ class DefaultExecutorChain {
         mCompletedTask = completedTask;
     }
 
-    public void setListenerTask(MiniTask listenerTask) {
+    public void addListenerTask(MiniTask listenerTask) {
         if (listenerTask == null) {
             return;
         }
 
-        if (mCurTask == null) {
-            return;
+        if (mCurTask != null) {
+            mCurTask.addListenerTask(listenerTask);
         }
-        mCurTask.setListenerTask(listenerTask);
 
-        if (mNextTask == null) {
+        if (mNextTask != null) {
+            mNextTask.addListenerTask(listenerTask);
+        }
+    }
+
+    public void removeListenerTask(MiniTask listenerTask) {
+        if (listenerTask == null) {
             return;
         }
-        mNextTask.setListenerTask(listenerTask);
+
+        if (mCurTask != null) {
+            mCurTask.removeListener(listenerTask);
+        }
+
+        if (mNextTask != null) {
+            mNextTask.removeListener(listenerTask);
+        }
+    }
+
+    public void clearListenerTask() {
+        if (mCurTask != null) {
+            mCurTask.clearListener();
+        }
+
+        if (mNextTask != null) {
+            mNextTask.clearListener();
+        }
     }
 
     void cancel() {
@@ -143,7 +165,7 @@ class DefaultExecutorChain {
                         new TaskWrapper.ITaskWrapperListener<ChainInfo>() {
                             @Override
                             public void invoke(final ChainInfo data) {
-                                mCurFuture = TaskThreadFactory.getSingleThread().submit(new Runnable() {
+                                mCurFuture = data.mTask.getTaskThreadFactory().getSingleThread().submit(new Runnable() {
                                     @Override
                                     public void run() {
                                         try {
@@ -219,7 +241,7 @@ class DefaultExecutorChain {
                         new TaskWrapper.ITaskWrapperListener<ChainInfo>() {
                             @Override
                             public void invoke(final ChainInfo data) {
-                                mNextFuture = TaskThreadFactory.getSingleThread().submit(new Runnable() {
+                                mNextFuture = data.mTask.getTaskThreadFactory().getSingleThread().submit(new Runnable() {
                                     @Override
                                     public void run() {
                                         try {
@@ -288,7 +310,7 @@ class DefaultExecutorChain {
                         new TaskWrapper.ITaskWrapperListener<ChainInfo>() {
                             @Override
                             public void invoke(ChainInfo data) {
-                                mCacheErrorFuture = TaskThreadFactory.getSingleThread().submit(new Runnable() {
+                                mCacheErrorFuture = data.mTask.getTaskThreadFactory().getSingleThread().submit(new Runnable() {
                                     @Override
                                     public void run() {
                                         try {
@@ -363,7 +385,7 @@ class DefaultExecutorChain {
                         new TaskWrapper.ITaskWrapperListener<ChainInfo>() {
                             @Override
                             public void invoke(ChainInfo data) {
-                                mCompletedFuture = TaskThreadFactory.getSingleThread().submit(new Runnable() {
+                                mCompletedFuture = data.mTask.getTaskThreadFactory().getSingleThread().submit(new Runnable() {
                                     @Override
                                     public void run() {
                                         try {

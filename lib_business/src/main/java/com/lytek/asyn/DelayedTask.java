@@ -1,7 +1,5 @@
 package com.lytek.asyn;
 
-import android.os.SystemClock;
-
 /**
  * author:Fred
  * date:2022/9/25 17:35
@@ -34,10 +32,17 @@ public abstract class DelayedTask extends MiniTask {
 
     @Override
     public Object doTask(Object input) {
-        LogUtils.d(TAG, "doTask | DelayedTask is running in " + Thread.currentThread().getName());
-        SystemClock.sleep(mDelayedMillisecond);
-        return doDelayedTask(input);
+        Object output = null;
+        LogUtils.d(TAG, "doTask | begin delay " + Thread.currentThread().getName());
+        try {
+            Thread.sleep(mDelayedMillisecond);
+            LogUtils.d(TAG, "doTask | end delay " + Thread.currentThread().getName());
+            output = execTask(input);
+        } catch (InterruptedException e) {
+            //ignore
+        }
+        return output;
     }
 
-    public abstract Object doDelayedTask(Object input);
+    public abstract Object execTask(Object input);
 }

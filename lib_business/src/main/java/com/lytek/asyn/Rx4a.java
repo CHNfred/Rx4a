@@ -11,9 +11,14 @@ public class Rx4a {
     private static final String PREFIX = "Rx4a_";
     private DefaultExecutorChain mFirstExecutorChain;
     private DefaultExecutorChain mNextExecutorChain;
+    private final TaskThreadFactory mTaskThreadFactory;
 
     static {
         LogUtils.setPreTag(PREFIX);
+    }
+
+    public Rx4a() {
+        mTaskThreadFactory = new TaskThreadFactory();
     }
 
     public static void config(boolean isDebug) {
@@ -28,44 +33,63 @@ public class Rx4a {
 
     public Rx4a then(MiniTask task) {
         LogUtils.d(TAG, "then");
+        task.setTaskThreadFactory(mTaskThreadFactory);
         return addDefaultTask(task);
     }
 
     public Rx4a delayed(DelayedTask task) {
         LogUtils.d(TAG, "delayed");
+        task.setTaskThreadFactory(mTaskThreadFactory);
         return addDefaultTask(task);
     }
 
     public Rx4a whenComplete(CompletedTask task) {
         LogUtils.d(TAG, "whenComplete");
+        task.setTaskThreadFactory(mTaskThreadFactory);
         doCompletedTask(task);
         return this;
     }
 
     public Rx4a wait(ParallelTask task) {
         LogUtils.d(TAG, "wait");
+        task.setTaskThreadFactory(mTaskThreadFactory);
         return addDefaultTask(task);
     }
 
     public Rx4a filter(MiniTask task) {
         LogUtils.d(TAG, "filter");
+        task.setTaskThreadFactory(mTaskThreadFactory);
         return addDefaultTask(task);
     }
 
     public Rx4a map(MiniTask task) {
         LogUtils.d(TAG, "map");
+        task.setTaskThreadFactory(mTaskThreadFactory);
+        return addDefaultTask(task);
+    }
+
+    public Rx4a timeout(TimeoutTask task) {
+        LogUtils.d(TAG, "timeout");
+        task.setTaskThreadFactory(mTaskThreadFactory);
         return addDefaultTask(task);
     }
 
     public Rx4a listener(ListenerTask task) {
         LogUtils.d(TAG, "listener");
+        if (task == null) {
+            LogUtils.d(TAG, "listener | because task is null, so return");
+            return this;
+        }
+
+        task.setTaskThreadFactory(mTaskThreadFactory);
         doListenerTask(task);
         return this;
     }
 
-    public Rx4a cacheError(CatchErrorTask task) {
-        LogUtils.d(TAG, "cacheError");
-        doCacheErrorTask(task);
+    public Rx4a catchError(CatchErrorTask task) {
+        LogUtils.d(TAG, "catchError");
+        task.setTaskThreadFactory(mTaskThreadFactory);
+        doCatchErrorTask(task);
         return this;
     }
 
@@ -76,6 +100,16 @@ public class Rx4a {
         }
 
         mFirstExecutorChain.exec();
+    }
+
+    public void removeListener(ListenerTask task) {
+        LogUtils.d(TAG, "removeListener");
+        doRemoveListenerTask(task);
+    }
+
+    public void clearListener() {
+        LogUtils.d(TAG, "clearListener");
+        doClearListenerTask();
     }
 
     public void cancel() {
@@ -145,9 +179,9 @@ public class Rx4a {
         LogUtils.d(TAG, "doCompletedTask | completed");
     }
 
-    private void doCacheErrorTask(CatchErrorTask task) {
+    private void doCatchErrorTask(CatchErrorTask task) {
         if (mFirstExecutorChain == null) {
-            LogUtils.d(TAG, "doCacheErrorTask | mFirstExecutorChain == null, so return");
+            LogUtils.d(TAG, "doCatchErrorTask | mFirstExecutorChain == null, so return");
             return;
         }
         mFirstExecutorChain.setCatchErrorTask(task);
@@ -157,7 +191,7 @@ public class Rx4a {
             nextChain.setCatchErrorTask(task);
             nextChain = nextChain.getNextDefaultExecutorChain();
         }
-        LogUtils.d(TAG, "doCacheErrorTask | completed");
+        LogUtils.d(TAG, "doCatchErrorTask | completed");
     }
 
     private void doListenerTask(ListenerTask task) {
@@ -165,13 +199,43 @@ public class Rx4a {
             LogUtils.d(TAG, "doListenerTask | mFirstExecutorChain == null, so return");
             return;
         }
-        mFirstExecutorChain.setListenerTask(task);
+        mFirstExecutorChain.addListenerTask(task);
 
         DefaultExecutorChain nextChain = mFirstExecutorChain.getNextDefaultExecutorChain();
         while (nextChain != null) {
-            nextChain.setListenerTask(task);
+            nextChain.addListenerTask(task);
             nextChain = nextChain.getNextDefaultExecutorChain();
         }
         LogUtils.d(TAG, "doListenerTask | completed");
+    }
+
+    private void doRemoveListenerTask(ListenerTask task) {
+        if (mFirstExecutorChain == null) {
+            LogUtils.d(TAG, "doRemoveListenerTask | mFirstExecutorChain == null, so return");
+            return;
+        }
+        mFirstExecutorChain.removeListenerTask(task);
+
+        DefaultExecutorChain nextChain = mFirstExecutorChain.getNextDefaultExecutorChain();
+        while (nextChain != null) {
+            nextChain.removeListenerTask(task);
+            nextChain = nextChain.getNextDefaultExecutorChain();
+        }
+        LogUtils.d(TAG, "doRemoveListenerTask | completed");
+    }
+
+    private void doClearListenerTask() {
+        if (mFirstExecutorChain == null) {
+            LogUtils.d(TAG, "doClearListenerTask | mFirstExecutorChain == null, so return");
+            return;
+        }
+        mFirstExecutorChain.clearListenerTask();
+
+        DefaultExecutorChain nextChain = mFirstExecutorChain.getNextDefaultExecutorChain();
+        while (nextChain != null) {
+            nextChain.clearListenerTask();
+            nextChain = nextChain.getNextDefaultExecutorChain();
+        }
+        LogUtils.d(TAG, "doClearListenerTask | completed");
     }
 }

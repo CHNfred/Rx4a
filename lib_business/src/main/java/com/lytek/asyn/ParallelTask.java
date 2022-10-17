@@ -1,7 +1,6 @@
 package com.lytek.asyn;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 /**
@@ -12,7 +11,6 @@ import java.util.concurrent.Future;
 public class ParallelTask extends MiniTask {
     private static final String TAG = "ParallelTask";
     private final MiniTask[] mTasks;
-    private final ExecutorService mMultiThread;
     private final CountDownLatch mCountDownLatch;
     private final Object[] mParallelOuts;
     private final Future<?>[] mFutures;
@@ -47,7 +45,6 @@ public class ParallelTask extends MiniTask {
         mCountDownLatch = new CountDownLatch(tasks.length);
         mParallelOuts = new Object[tasks.length];
         mFutures = new Future[tasks.length];
-        mMultiThread = TaskThreadFactory.getMultiThread();
     }
 
     @Override
@@ -70,10 +67,34 @@ public class ParallelTask extends MiniTask {
     }
 
     @Override
-    void setListenerTask(MiniTask task) {
-        super.setListenerTask(task);
+    void addListenerTask(MiniTask task) {
+        super.addListenerTask(task);
         for (MiniTask miniTask : mTasks) {
-            miniTask.setListenerTask(task);
+            miniTask.addListenerTask(task);
+        }
+    }
+
+    @Override
+    void removeListener(MiniTask task) {
+        super.removeListener(task);
+        for (MiniTask miniTask : mTasks) {
+            miniTask.removeListener(task);
+        }
+    }
+
+    @Override
+    void clearListener() {
+        super.clearListener();
+        for (MiniTask miniTask : mTasks) {
+            miniTask.clearListener();
+        }
+    }
+
+    @Override
+    void setTaskThreadFactory(TaskThreadFactory taskThreadFactory) {
+        super.setTaskThreadFactory(taskThreadFactory);
+        for (MiniTask miniTask : mTasks) {
+            miniTask.setTaskThreadFactory(taskThreadFactory);
         }
     }
 
@@ -145,7 +166,7 @@ public class ParallelTask extends MiniTask {
                 new TaskWrapper.ITaskWrapperListener<TaskInfo>() {
                     @Override
                     public void invoke(final TaskInfo data) {
-                        mFutures[data.mIndex] = mMultiThread.submit(new Runnable() {
+                        mFutures[data.mIndex] = getTaskThreadFactory().getMultiThread().submit(new Runnable() {
                             @Override
                             public void run() {
                                 try {

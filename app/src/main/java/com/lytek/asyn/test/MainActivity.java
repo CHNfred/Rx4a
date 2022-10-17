@@ -167,7 +167,7 @@ public class MainActivity extends Activity {
             }
         }).delayed(new DelayedTask(IThreadConstants.SUB_THREAD, null, 2000) {
             @Override
-            public Object doDelayedTask(Object input) {
+            public Object execTask(Object input) {
                 notifyResult("from Delayed task");
                 LogUtils.d("Fred", "DelayedTask, threadName = " + Thread.currentThread().getName()
                         + ", input = " + input + ", isCancel = " + isCancel());
@@ -193,7 +193,7 @@ public class MainActivity extends Activity {
                 LogUtils.e("Fred", "onProgress | threadName = " + Thread.currentThread().getName()
                         + ", input = " + input + ", isCancel = " + isCancel());
             }
-        }).cacheError(new CatchErrorTask() {
+        }).catchError(new CatchErrorTask() {
             @Override
             public void onError(Throwable throwable) {
                 LogUtils.d("Fred", "occur error, threadName = " + Thread.currentThread().getName()
